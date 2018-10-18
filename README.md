@@ -1,18 +1,18 @@
-# rbrossi-vgrant-docker-swarm
+# DOCKER VAGRANT SWARM 
 
-This is a vgrant docker sample. 
+This is a vagrant docker sample. 
 
 The aim of this studies are connect different cockroachDBs in an cluster of docker. 
 
 There is an issue regarding the proxy plugin on vagrant. 
 
-## Pre requiremetns 
+## Pre requirements
 
 [Donwload the virtual box](https://www.virtualbox.org/wiki/Downloads)
 
 Ensure that you have the Vagrant installed 
 
-if you have throbles to start 
+if you have issue to start, try this one: 
 ```kotlin
 sudo /Library/StartupItems/VirtualBox/VirtualBox restart
 ```
