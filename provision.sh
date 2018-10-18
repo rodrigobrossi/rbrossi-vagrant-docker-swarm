@@ -9,6 +9,9 @@ sudo apt-get install docker-engine --force-yes -y
 sudo usermod -aG docker vagrant
 sudo service docker start
 docker version
+curl -L http://portainer.io/download/portainer-agent-stack.yml -o portainer-agent-stack.yaml
+docker stack deploy --compose-agent-stack.yml portainer
+
 
 
 

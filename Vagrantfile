@@ -42,6 +42,8 @@ instances.each do |instance|
     no_proxy += ",#{instance[:ip]}"
 end
 
+
+
 # Vagrant version requirement
 Vagrant.require_version ">= 1.8.4"
 
