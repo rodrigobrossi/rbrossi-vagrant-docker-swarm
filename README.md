@@ -17,12 +17,15 @@ if you have issue to start, try this one:
 sudo /Library/StartupItems/VirtualBox/VirtualBox restart
 ```
 
+
 [Vagrant 2.2.0 download](https://www.vagrantup.com/downloads.html)
 
 
-run the following command line in order to have the proxy plugin configured. 
+run the following command line in order to have the proxy plugin configured. And you will need to install the vagrant-disksize
 ```kotlin
 $vagrant plugin install vagrant-proxyconf
+
+$vagrant plugin install vagrant-disksize
 ```
 
 To start the example, please run the following command line 

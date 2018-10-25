@@ -13,7 +13,7 @@ numworkers = 2
 
 # VirtualBox settings
 # Increase vmmemory if you want more than 512mb memory in the vm's
-vmmemory = 512
+vmmemory = 1024
 # Increase numcpu if you want more cpu's per vm
 numcpu = 1
 
@@ -89,6 +89,7 @@ Vagrant.configure("2") do |config|
         # Install the portainer stack to manage swarms
         i.vm.provision "shell", inline: "curl -L https://portainer.io/download/portainer-agent-stack.yml -o portainer-agent-stack.yml"
         i.vm.provision "shell", inline: "docker stack deploy --compose-file=portainer-agent-stack.yml portainer"
+        i.vm.provision "shell", inline: "docker stack deploy --compose-file=./docker-cockroach-stack.yaml coackroach"
         # Create swarm services
         # Config manager node
         i.vm.provision "shell", inline: "sudo docker service create \
@@ -96,7 +97,7 @@ Vagrant.configure("2") do |config|
         --name cockroachdb-1 \
         --hostname cockroachdb-1 \
         --network cockroachdb \
-        --mount type=volume,source=cockroachdb-1,target=/cockroach/cockroach-data-1,volume-driver=local \
+        --mount type=volume,source=cockroachdb-1,target=/cockroach/cockroach-data-0,volume-driver=local \
         --stop-grace-period 60s \
         --publish 8080:8080 \
         cockroachdb/cockroach:v2.0.6 start \
@@ -106,12 +107,13 @@ Vagrant.configure("2") do |config|
         --logtostderr \
         --insecure"
         (1..numworkers).each do |n| 
+          i.vm.provision "shell", inline: "echo Creating worker #{n}"
           i.vm.provision "shell", inline: "sudo docker service create \
           --replicas 1 \
           --name cockroachdb-#{n+1} \
           --hostname cockroachdb-#{n+1} \
           --network cockroachdb \
-          --mount type=volume,source=cockroachdb-2,target=/cockroach/cockroach-data-#{n+1},volume-driver=local \
+          --mount type=volume,source=cockroachdb-#{n+1},target=/cockroach/cockroach-data-#{n+1},volume-driver=local \
           --stop-grace-period 60s \
           cockroachdb/cockroach:v2.0.6 start \
           --join=cockroachdb-1:26257,cockroachdb-2:26257,cockroachdb-3:26257 \
