@@ -143,8 +143,8 @@ Vagrant.configure("2") do |config|
       end 
       if auto
         i.vm.provision "shell", inline: "docker swarm join --advertise-addr #{instance[:ip]} --listen-addr #{instance[:ip]}:2377 --token `cat /vagrant/token` #{manager_ip}:2377"
-        i.vm.provision "shell", inline: "docke container ps"
-        i.vm.provision "shell", inline: "docke node ls"
+        i.vm.provision "shell", inline: "docker container ps"
+        i.vm.provision "shell", inline: "docker node ls"
         #i.vm.provision "shell", inline: "sudo docker run -it --rm --network=cockroachdb cockroachdb/cockroach:v2.0.6 init --host=cockroachdb-1 --insecure" 
       end
     end 
