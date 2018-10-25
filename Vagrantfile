@@ -83,7 +83,7 @@ Vagrant.configure("2") do |config|
       end 
       if auto 
         i.vm.provision "shell", inline: "docker swarm init --advertise-addr #{manager_ip}"
-        i.vm.provision "shell", inline: "docker swarm join-token -q slave > /vagrant/token"
+        i.vm.provision "shell", inline: "docker swarm join-token -q worker > /vagrant/token"
         i.vm.provision "shell", inline: "sudo docker node ls"
         i.vm.provision "shell", inline: "sudo docker network create --driver overlay --attachable cockroachdb"
         # Install the portainer stack to manage swarms
@@ -123,7 +123,7 @@ Vagrant.configure("2") do |config|
         # Check cockroach service installation
         i.vm.provision "shell", inline: "sudo docker service ls"
         # You can choose latter to initiate a the cockroachDB cluster from other node that is not the manger.
-        # i.vm.provision "shell", inline: "sudo docker run -it --rm --network=cockroachdb cockroachdb/cockroach:v2.0.6 init --host=cockroachdb-1 --insecure" 
+        i.vm.provision "shell", inline: "sudo docker run --rm --network=cockroachdb cockroachdb/cockroach:v2.0.6 init --host=cockroachdb-1 --insecure" 
       end
     end 
 
@@ -143,7 +143,9 @@ Vagrant.configure("2") do |config|
       end 
       if auto
         i.vm.provision "shell", inline: "docker swarm join --advertise-addr #{instance[:ip]} --listen-addr #{instance[:ip]}:2377 --token `cat /vagrant/token` #{manager_ip}:2377"
-        i.vm.provision "shell", inline: "sudo docker run -it --rm --network=cockroachdb cockroachdb/cockroach:v2.0.6 init --host=cockroachdb-1 --insecure" 
+        i.vm.provision "shell", inline: "docke container ps"
+        i.vm.provision "shell", inline: "docke node ls"
+        #i.vm.provision "shell", inline: "sudo docker run -it --rm --network=cockroachdb cockroachdb/cockroach:v2.0.6 init --host=cockroachdb-1 --insecure" 
       end
     end 
   end
