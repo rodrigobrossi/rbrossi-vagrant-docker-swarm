@@ -6,7 +6,8 @@
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
 
-auto = ENV['AUTO_START_SWARM'] || false
+#auto = ENV['AUTO_START_SWARM'] || false
+auto = true
 # Increase numworkers if you want more than 3 nodes
 numworkers = 2
 
@@ -83,6 +84,46 @@ Vagrant.configure("2") do |config|
       if auto 
         i.vm.provision "shell", inline: "docker swarm init --advertise-addr #{manager_ip}"
         i.vm.provision "shell", inline: "docker swarm join-token -q slave > /vagrant/token"
+        i.vm.provision "shell", inline: "sudo docker node ls"
+        i.vm.provision "shell", inline: "sudo docker network create --driver overlay --attachable cockroachdb"
+        # Install the portainer stack to manage swarms
+        i.vm.provision "shell", inline: "curl -L https://portainer.io/download/portainer-agent-stack.yml -o portainer-agent-stack.yml"
+        i.vm.provision "shell", inline: "docker stack deploy --compose-file=portainer-agent-stack.yml portainer"
+        # Create swarm services
+        # Config manager node
+        i.vm.provision "shell", inline: "sudo docker service create \
+        --replicas 1 \
+        --name cockroachdb-1 \
+        --hostname cockroachdb-1 \
+        --network cockroachdb \
+        --mount type=volume,source=cockroachdb-1,target=/cockroach/cockroach-data-1,volume-driver=local \
+        --stop-grace-period 60s \
+        --publish 8080:8080 \
+        cockroachdb/cockroach:v2.0.6 start \
+        --join=cockroachdb-1:26257,cockroachdb-2:26257,cockroachdb-3:26257 \
+        --cache=.25 \
+        --max-sql-memory=.25 \
+        --logtostderr \
+        --insecure"
+        (1..numworkers).each do |n| 
+          i.vm.provision "shell", inline: "sudo docker service create \
+          --replicas 1 \
+          --name cockroachdb-#{n+1} \
+          --hostname cockroachdb-#{n+1} \
+          --network cockroachdb \
+          --mount type=volume,source=cockroachdb-2,target=/cockroach/cockroach-data-#{n+1},volume-driver=local \
+          --stop-grace-period 60s \
+          cockroachdb/cockroach:v2.0.6 start \
+          --join=cockroachdb-1:26257,cockroachdb-2:26257,cockroachdb-3:26257 \
+          --cache=.25 \
+          --max-sql-memory=.25 \
+          --logtostderr \
+          --insecure"
+        end
+        # Check cockroach service installation
+        i.vm.provision "shell", inline: "sudo docker service ls"
+        # You can choose latter to initiate a the cockroachDB cluster from other node that is not the manger.
+        # i.vm.provision "shell", inline: "sudo docker run -it --rm --network=cockroachdb cockroachdb/cockroach:v2.0.6 init --host=cockroachdb-1 --insecure" 
       end
     end 
 
@@ -102,6 +143,7 @@ Vagrant.configure("2") do |config|
       end 
       if auto
         i.vm.provision "shell", inline: "docker swarm join --advertise-addr #{instance[:ip]} --listen-addr #{instance[:ip]}:2377 --token `cat /vagrant/token` #{manager_ip}:2377"
+        i.vm.provision "shell", inline: "sudo docker run -it --rm --network=cockroachdb cockroachdb/cockroach:v2.0.6 init --host=cockroachdb-1 --insecure" 
       end
     end 
   end

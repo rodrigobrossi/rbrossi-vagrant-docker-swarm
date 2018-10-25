@@ -1,2 +1,2 @@
-192.168.2.3 slave1 slave1
-192.168.2.4 slave2 slave2
+192.168.10.3 worker1 worker1
+192.168.10.4 worker2 worker2
