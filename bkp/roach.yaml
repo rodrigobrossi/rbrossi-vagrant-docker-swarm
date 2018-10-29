@@ -1,0 +1,38 @@
+version: '3.1'
+
+services:
+  roach1:
+    image: cockroachdb/cockroach:v2.0.6
+    deploy:
+      replicas: 1
+    networks:
+      - roach
+    ports:
+      - "8080:8080"
+    command: "start --insecure"
+    stop_grace_period: 60s
+    hostname: "{{.Task.Name}}"
+
+  roachN:
+    image: cockroachdb/cockroach:v2.0.6
+    depends_on:
+      - roach1
+    deploy:
+      replicas: 3
+      placement:
+        constraints:
+          - node.role == manager
+    networks:
+      - roach
+    command: "start --insecure --join=roach1,roachN"
+    stop_grace_period: 60s
+    hostname: "{{.Task.Name}}"
+
+networks:
+  roach:
+    driver: overlay
+    driver_opts:
+      encrypted: ""
+    ipam:
+      config:
+      - subnet: 10.10.0.0/16

@@ -1,0 +1,67 @@
+version: '3'
+services:
+  roach-ui:
+    image: cockroachdb/cockroach:v2.0.6
+    command: "docker service create 
+        --replicas 1 \
+        --name roach-ui \
+        --hostname roach-ui \
+        --network cockroachdb \
+        --mount type=volume,source=roach-ui,target=/cockroach/cockroach-data-ui,volume-driver=local \
+        --stop-grace-period 60s \
+        --publish 8080:8080 \
+        cockroachdb/cockroach:v2.0.6 start \
+        --join=roach-ui:26258,roach-one:26257 \
+        --cache=.25 \
+        --max-sql-memory=.25 \
+        --logtostderr \
+        --insecure"
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.role == manager]  
+    ports:
+      - 8080:8080
+      - 26258:26257
+    networks:
+        - cockroachdb
+    volumes:
+      - ./data/roach-ui:/cockroach/cockroach-data-ui
+  roach-n:
+    image: cockroachdb/cockroach:v2.0.6
+    command: "docker service create 
+        --replicas 1 \
+        --name roach-one \
+        --hostname roach-one \
+          --network cockroachdb \
+          --mount type=volume,source=roach-one,target=/cockroach/cockroach-data-one,volume-driver=local \
+          --stop-grace-period 60s \
+          cockroachdb/cockroach:v2.0.6 start \
+          --join=roach-ui:26258,roach-one:26257 \
+          --cache=.25 \
+          --max-sql-memory=.25 \
+         --logtostderr \
+         --insecure" 
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.role == worker]       
+    ports:
+      - 26257:26257    
+    networks:
+        - cockroachdb
+    volumes:
+      - ./data/roach-one:/cockroach/cockroach-data-one
+networks:
+  cockroachdb:
+     
